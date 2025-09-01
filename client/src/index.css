@@ -6,5 +6,9 @@
 
 @theme {
   --color-dark: #0a0f0a;
-  --color-green: #00ff41;
+  --color-green: #61cf5a;
+}
+
+.input {
+  @apply p-2 rounded border-b border-green/50 px-4 py-2 outline-none focus:border-green text-xl;
 }

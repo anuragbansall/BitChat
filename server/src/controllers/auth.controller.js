@@ -110,3 +110,25 @@ export const logout = async (req, res) => {
     });
   }
 };
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+        },
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
+  }
+};
