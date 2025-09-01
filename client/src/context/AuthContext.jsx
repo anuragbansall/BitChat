@@ -5,7 +5,7 @@ export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [fetchProfileError, setFetchProfileError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
