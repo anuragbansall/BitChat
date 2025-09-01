@@ -8,6 +8,7 @@ export const getAllUsers = async (req, res) => {
         message: "Unauthorized: User not authenticated",
       });
     }
+    
     const currentUserId = req.user._id;
     const users = await User.find({ _id: { $ne: currentUserId } });
 
