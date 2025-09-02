@@ -9,6 +9,11 @@
   --color-green: #61cf5a;
 }
 
+/* Minimal scrollbar styles */
+::-webkit-scrollbar {
+  display: none;
+}
+
 .input {
   @apply p-2 rounded border-b border-green/50 px-4 py-2 outline-none focus:border-green text-xl;
 }
