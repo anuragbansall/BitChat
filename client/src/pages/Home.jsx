@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -68,9 +68,15 @@ const messages = [
 ];
 
 const Home = () => {
-  const { isAuthenticated, isFetchingProfile } = useContext(AuthContext);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { isAuthenticated, isFetchingProfile, logout } =
+    useContext(AuthContext);
 
   const navigate = useNavigate();
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
 
   if (isFetchingProfile) {
     return (
@@ -91,9 +97,9 @@ const Home = () => {
         {users.map((user) => (
           <div
             key={user.id}
-            className="border-b border-neutral-800 flex items-center gap-4 px-4 py-2 cursor-pointer hover:bg-neutral-800/20 duration-200"
+            className="border-b border-neutral-800 flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-neutral-800/20 duration-200"
           >
-            <div className="w-10 h-10 bg-neutral-800/40 uppercase font-xl rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-neutral-800/40 uppercase text-lg rounded-full flex items-center justify-center">
               {user.username[0]}
             </div>
             <p className="text-sm">@{user.username}</p>
@@ -102,6 +108,27 @@ const Home = () => {
       </aside>
 
       <section className="w-4/5 h-full p-4 flex flex-col">
+        <header className="relative border-b border-neutral-800 pb-4 mb-4 flex items-center justify-between">
+          <h1 className="text-2xl">BitChat</h1>
+
+          <div
+            className="w-10 h-10 bg-neutral-800/40 uppercase text-xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
+            onClick={toggleDropdown}
+          >
+            {"anurag"[0]}
+          </div>
+
+          {isDropdownOpen ? (
+            <div className="absolute -bottom-[100%] right-0 py-4 bg-neutral-800/50 border border-neutral-800 flex flex-col px-16 rounded-md backdrop-blur-md">
+              <h2
+                className="text-lg text-white/80 hover:text-white duration-200 border-b border-neutral-800 pb-2 cursor-pointer hover:border-green"
+                onClick={logout}
+              >
+                Logout
+              </h2>
+            </div>
+          ) : null}
+        </header>
         <div className="flex flex-col overflow-y-auto mb-4">
           {messages.map((message) => (
             <div
