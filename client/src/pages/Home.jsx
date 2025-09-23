@@ -1,78 +1,27 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-
-const users = [
-  { id: 1, username: "user1", email: "user1@example.com" },
-  { id: 2, username: "auser2", email: "user2@example.com" },
-  { id: 3, username: "xuser3", email: "user3@example.com" },
-];
-
-const messages = [
-  {
-    id: 1,
-    senderId: 1, // logged in user
-    receiverId: 2, // chatting with user
-    text: "Hey, how are you?",
-    timestamp: "2024-06-01T10:00:00Z",
-  },
-  {
-    id: 2,
-    senderId: 2,
-    receiverId: 1,
-    text: "I'm good! How about you?",
-    timestamp: "2024-06-01T10:01:00Z",
-  },
-  {
-    id: 3,
-    senderId: 1,
-    receiverId: 2,
-    text: "Doing well, thanks! Working on a new project.",
-    timestamp: "2024-06-01T10:02:00Z",
-  },
-  {
-    id: 4,
-    senderId: 2,
-    receiverId: 1,
-    text: "That sounds interesting. Tell me more!",
-    timestamp: "2024-06-01T10:03:00Z",
-  },
-  {
-    id: 1,
-    senderId: 1, // logged in user
-    receiverId: 2, // chatting with user
-    text: "Hey, how are you?",
-    timestamp: "2024-06-01T10:00:00Z",
-  },
-  {
-    id: 2,
-    senderId: 2,
-    receiverId: 1,
-    text: "I'm good! How about you?",
-    timestamp: "2024-06-01T10:01:00Z",
-  },
-  {
-    id: 3,
-    senderId: 1,
-    receiverId: 2,
-    text: "Doing well, thanks! Working on a new project.",
-    timestamp: "2024-06-01T10:02:00Z",
-  },
-  {
-    id: 4,
-    senderId: 2,
-    receiverId: 1,
-    text: "That sounds interesting. Tell me more!",
-    timestamp: "2024-06-01T10:03:00Z",
-  },
-];
+import { ChatContext } from "../context/ChatContext";
 
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { isAuthenticated, isFetchingProfile, logout } =
+  const [users, setUsers] = useState([]);
+
+  const { isAuthenticated, isFetchingProfile, logout, allUsers } =
     useContext(AuthContext);
 
+  const { selectedChat, setSelectedChat, chats, setChats, socket } =
+    useContext(ChatContext);
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setUsers(allUsers);
+  }, [allUsers]);
+
+  const handleUserClick = (user) => {
+    setSelectedChat(user);
+  };
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
@@ -96,8 +45,11 @@ const Home = () => {
       <aside className="w-1/5 h-full border-r border-neutral-800 flex flex-col overflow-y-auto">
         {users.map((user) => (
           <div
-            key={user.id}
-            className="border-b border-neutral-800 flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-neutral-800/20 duration-200"
+            key={user._id}
+            className={`border-b border-neutral-800 flex items-center gap-4 px-4 py-3 cursor-pointer hover:bg-neutral-800/20 duration-200 ${
+              user._id === selectedChat?._id ? "bg-neutral-800/20" : ""
+            }`}
+            onClick={() => handleUserClick(user)}
           >
             <div className="w-10 h-10 bg-neutral-800/40 uppercase text-lg rounded-full flex items-center justify-center">
               {user.username[0]}
@@ -115,9 +67,9 @@ const Home = () => {
             className="w-10 h-10 bg-neutral-800/40 uppercase text-xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
             onClick={toggleDropdown}
           >
-            {"anurag"[0]}
+            {allUsers?.find((u) => u._id === selectedChat?._id)?.username[0] ||
+              ""}
           </div>
-
           {isDropdownOpen ? (
             <div className="absolute -bottom-[100%] right-0 py-4 bg-neutral-800/50 border border-neutral-800 flex flex-col px-16 rounded-md backdrop-blur-md">
               <h2
@@ -130,7 +82,7 @@ const Home = () => {
           ) : null}
         </header>
         <div className="flex flex-col overflow-y-auto mb-4">
-          {messages.map((message) => (
+          {chats.map((message) => (
             <div
               key={message.id}
               className={`p-2 my-2 rounded-md ${

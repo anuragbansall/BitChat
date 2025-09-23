@@ -8,8 +8,8 @@ const AuthProvider = ({ children }) => {
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [fetchProfileError, setFetchProfileError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [allUsers, setAllUsers] = useState([]);
 
-  console.log(user);
 
   const login = async (credentials) => {
     const response = await API.post("/auth/login", credentials);
@@ -44,10 +44,25 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const getAllUsers = async () => {
+    try {
+      const response = await API.get("/users");
+      setAllUsers(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
   useEffect(() => {
     getProfile();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      getAllUsers();
+    }
+  }, [isAuthenticated]);
   return (
     <AuthContext.Provider
       value={{
@@ -60,6 +75,8 @@ const AuthProvider = ({ children }) => {
         fetchProfileError,
         getProfile,
         isAuthenticated,
+        allUsers,
+        setAllUsers,
       }}
     >
       {children}
