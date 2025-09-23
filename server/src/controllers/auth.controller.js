@@ -114,6 +114,9 @@ export const logout = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const user = req.user;
+    const token = req.token;
+
+    // For production, consider using a logging library with log levels instead of console.log
 
     res.status(200).json({
       status: "success",
@@ -121,6 +124,7 @@ export const getProfile = async (req, res) => {
         user: {
           id: user._id,
           username: user.username,
+          token,
         },
       },
     });

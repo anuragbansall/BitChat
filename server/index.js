@@ -10,8 +10,9 @@ const PORT = config.port;
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: "*", // change this to frontend domain in production
+    origin: "http://localhost:5173", // set to your frontend URL
     methods: ["GET", "POST"],
+    credentials: true, // allow credentials
   },
 });
 
@@ -43,6 +44,7 @@ io.on("connection", (socket) => {
 
   // Listen for chat messages
   socket.on("chatMessage", async ({ message, receiver }) => {
+    console.log(`📩 Message from ${userId} to ${receiver}: ${message}`);
     if (!message || !receiver) {
       console.error("❌ Invalid chatMessage data");
       return socket.emit("error", "Invalid message data");
@@ -62,6 +64,8 @@ io.on("connection", (socket) => {
         content: message,
       });
 
+      console.log("✅ Message saved:", payload);
+
       // Send to receiver if online
       const receiverSocketId = userSocketMap.get(receiver);
 
@@ -75,7 +79,6 @@ io.on("connection", (socket) => {
       console.error("❌ Failed to save message:", err.message);
       socket.emit("error", "Failed to save message. Please try again.");
     }
-    socket.emit("chatMessage", payload);
   });
 
   // Handle disconnect

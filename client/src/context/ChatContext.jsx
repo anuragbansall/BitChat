@@ -11,7 +11,9 @@ const ChatProvider = ({ children }) => {
   const [chatsLoading, setChatsLoading] = useState(false);
   const [chatsError, setChatsError] = useState(null);
 
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, token } = useContext(AuthContext);
+  // For production, consider using a logging library instead of console.log
+  // Example: logger.debug("Token", token);
 
   // Socket.io client instance
   const socket = useRef(null);
@@ -20,6 +22,7 @@ const ChatProvider = ({ children }) => {
     if (isAuthenticated && !socket.current) {
       socket.current = io("http://localhost:3000", {
         withCredentials: true,
+        auth: { token }, // pass token here
       });
 
       // Optionally, handle connect/disconnect events
@@ -37,7 +40,7 @@ const ChatProvider = ({ children }) => {
         socket.current = null;
       }
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
 
   const getChats = async () => {
     try {

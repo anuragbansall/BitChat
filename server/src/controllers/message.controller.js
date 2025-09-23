@@ -19,6 +19,8 @@ export const getMessagesByUserId = async (req, res) => {
       ]
     });
 
+    // For production, consider using a logging library like 'winston' or 'morgan' with appropriate log levels.
+
     res.json({
       status: "success",
       data: messages,

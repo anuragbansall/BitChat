@@ -9,23 +9,26 @@ const AuthProvider = ({ children }) => {
   const [fetchProfileError, setFetchProfileError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
-
+  const [token, setToken] = useState(null);
 
   const login = async (credentials) => {
     const response = await API.post("/auth/login", credentials);
     setUser(response.data.data.user);
+    setToken(response.data.data.token);
     setIsAuthenticated(true);
   };
 
   const register = async (details) => {
     const response = await API.post("/auth/register", details);
     setUser(response.data.data.user);
+    setToken(response.data.data.token);
     setIsAuthenticated(true);
   };
 
   const logout = async () => {
     await API.post("/auth/logout");
     setUser(null);
+    setToken(null);
     setIsAuthenticated(false);
   };
 
@@ -36,6 +39,7 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await API.get("/auth/profile");
       setUser(response.data.data.user);
+      setToken(response.data.data.user.token);
       setIsAuthenticated(true);
     } catch (error) {
       setFetchProfileError(error.response.data.message);
@@ -54,7 +58,6 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-  useEffect(() => {
     getProfile();
   }, []);
 
@@ -63,6 +66,7 @@ const AuthProvider = ({ children }) => {
       getAllUsers();
     }
   }, [isAuthenticated]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +81,7 @@ const AuthProvider = ({ children }) => {
         isAuthenticated,
         allUsers,
         setAllUsers,
+        token,
       }}
     >
       {children}

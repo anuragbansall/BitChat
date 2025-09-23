@@ -6,12 +6,56 @@ import { ChatContext } from "../context/ChatContext";
 const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [users, setUsers] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
 
-  const { isAuthenticated, isFetchingProfile, logout, allUsers } =
+  const { isAuthenticated, user, isFetchingProfile, logout, allUsers } =
     useContext(AuthContext);
 
   const { selectedChat, setSelectedChat, chats, setChats, socket } =
     useContext(ChatContext);
+
+  // Debug logging removed for production
+
+  // Listen for incoming messages
+  useEffect(() => {
+    if (!socket || !selectedChat) return;
+    const handleReceiveMessage = (msg) => {
+      // Only add message if it's for the current chat
+      if (
+        (msg.receiver === selectedChat._id && msg.senderId === user._id) ||
+        (msg.senderId === selectedChat._id && msg.receiver === user._id)
+      ) {
+        setChats((prev) => [...prev, msg]);
+      }
+    };
+    socket.on("chatMessage", handleReceiveMessage);
+    return () => {
+      socket.off("chatMessage", handleReceiveMessage);
+    };
+  }, [socket, selectedChat, setChats]);
+  // Send message handler
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!messageInput.trim() || !selectedChat || !socket) return;
+    const msg = {
+      receiver: selectedChat._id,
+      message: messageInput,
+      timestamp: Date.now(),
+      senderId: isAuthenticated ? user._id : null,
+    };
+    socket.emit("chatMessage", msg);
+    setChats((prev) => [
+      ...prev,
+      {
+        content: msg.message,
+        createdAt: msg.timestamp,
+        sender: user._id,
+        receiver: selectedChat._id,
+        _id: `temp-${Date.now()}`,
+      },
+    ]); // Optimistic update
+    setMessageInput("");
+  };
 
   const navigate = useNavigate();
 
@@ -84,26 +128,36 @@ const Home = () => {
         <div className="flex flex-col overflow-y-auto mb-4">
           {chats.map((message) => (
             <div
-              key={message.id}
+              key={message._id}
               className={`p-2 my-2 rounded-md ${
-                message.senderId === 1 ? "self-end" : "text-white/80"
+                message.sender === user?._id
+                  ? "bg-green/20 self-end text-right"
+                  : "bg-neutral-800/40 self-start text-left"
               }`}
             >
-              <p className="text-lg">{message.text}</p>
+              <p className="text-lg">{message.content}</p>
               <span className="text-xs text-neutral-400">
-                {new Date(message.timestamp).toLocaleString()}
+                {new Date(message.createdAt).toLocaleString()}
               </span>
             </div>
           ))}
         </div>
 
-        <form className="mt-auto flex gap-2 shrink-0">
+        <form
+          className="mt-auto flex gap-2 shrink-0"
+          onSubmit={handleSendMessage}
+        >
           <input
             type="text"
             placeholder="Type your message..."
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
             className="flex-1 px-4 py-3 border border-neutral-800 bg-transparent text-green outline-none focus:border-green rounded-md duration-200"
           />
-          <button className="py-2 px-4 rounded-md bg-neutral-800 text-white">
+          <button
+            type="submit"
+            className="py-2 px-4 rounded-md bg-neutral-800 text-white"
+          >
             Send
           </button>
         </form>
