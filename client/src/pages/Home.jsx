@@ -19,13 +19,21 @@ const Home = () => {
   // Listen for incoming messages
   useEffect(() => {
     if (!socket || !selectedChat) return;
+
     const handleReceiveMessage = (msg) => {
       // Only add message if it's for the current chat
-      if (
-        (msg.receiver === selectedChat._id && msg.senderId === user._id) ||
-        (msg.senderId === selectedChat._id && msg.receiver === user._id)
-      ) {
-        setChats((prev) => [...prev, msg]);
+      console.log(msg);
+      if (msg.sender === selectedChat._id && msg.receiver === user.id) {
+        setChats((prev) => [
+          ...prev,
+          {
+            content: msg.message,
+            createdAt: msg.createdAt,
+            sender: msg.sender,
+            receiver: msg.receiver,
+            _id: msg._id || `temp-${Date.now()}`,
+          },
+        ]);
       }
     };
     socket.on("chatMessage", handleReceiveMessage);
@@ -33,9 +41,11 @@ const Home = () => {
       socket.off("chatMessage", handleReceiveMessage);
     };
   }, [socket, selectedChat, setChats]);
+
   // Send message handler
   const handleSendMessage = (e) => {
     e.preventDefault();
+
     if (!messageInput.trim() || !selectedChat || !socket) return;
     const msg = {
       receiver: selectedChat._id,
@@ -43,17 +53,20 @@ const Home = () => {
       timestamp: Date.now(),
       senderId: isAuthenticated ? user._id : null,
     };
+
     socket.emit("chatMessage", msg);
+
     setChats((prev) => [
       ...prev,
       {
-        content: msg.message,
+        content: messageInput,
         createdAt: msg.timestamp,
-        sender: user._id,
+        sender: user.id,
         receiver: selectedChat._id,
         _id: `temp-${Date.now()}`,
       },
     ]); // Optimistic update
+
     setMessageInput("");
   };
 
@@ -103,65 +116,70 @@ const Home = () => {
         ))}
       </aside>
 
-      <section className="w-4/5 h-full p-4 flex flex-col">
-        <header className="relative border-b border-neutral-800 pb-4 mb-4 flex items-center justify-between">
-          <h1 className="text-2xl">BitChat</h1>
+      {selectedChat ? (
+        <section className="w-4/5 h-full p-4 flex flex-col">
+          <header className="relative border-b border-neutral-800 pb-4 mb-4 flex items-center justify-between">
+            <h1 className="text-2xl">BitChat</h1>
 
-          <div
-            className="w-10 h-10 bg-neutral-800/40 uppercase text-xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
-            onClick={toggleDropdown}
-          >
-            {allUsers?.find((u) => u._id === selectedChat?._id)?.username[0] ||
-              ""}
-          </div>
-          {isDropdownOpen ? (
-            <div className="absolute -bottom-[100%] right-0 py-4 bg-neutral-800/50 border border-neutral-800 flex flex-col px-16 rounded-md backdrop-blur-md">
-              <h2
-                className="text-lg text-white/80 hover:text-white duration-200 border-b border-neutral-800 pb-2 cursor-pointer hover:border-green"
-                onClick={logout}
-              >
-                Logout
-              </h2>
-            </div>
-          ) : null}
-        </header>
-        <div className="flex flex-col overflow-y-auto mb-4">
-          {chats.map((message) => (
             <div
-              key={message._id}
-              className={`p-2 my-2 rounded-md ${
-                message.sender === user?._id
-                  ? "bg-green/20 self-end text-right"
-                  : "bg-neutral-800/40 self-start text-left"
-              }`}
+              className="w-10 h-10 bg-neutral-800/40 uppercase text-xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
+              onClick={toggleDropdown}
             >
-              <p className="text-lg">{message.content}</p>
-              <span className="text-xs text-neutral-400">
-                {new Date(message.createdAt).toLocaleString()}
-              </span>
+              {user?.username[0]}
             </div>
-          ))}
-        </div>
+            {isDropdownOpen ? (
+              <div className="absolute -bottom-[100%] right-0 py-4 bg-neutral-800/50 border border-neutral-800 flex flex-col px-16 rounded-md backdrop-blur-md">
+                <h2
+                  className="text-lg text-white/80 hover:text-white duration-200 border-b border-neutral-800 pb-2 cursor-pointer hover:border-green"
+                  onClick={logout}
+                >
+                  Logout
+                </h2>
+              </div>
+            ) : null}
+          </header>
+          <div className="flex flex-col overflow-y-auto mb-4">
+            {chats.map((message) => (
+              <div
+                key={message._id}
+                className={`p-2 my-2 rounded-md ${
+                  message.sender === user?.id
+                    ? "bg-green/20 self-end text-right"
+                    : "bg-neutral-800/40 self-start text-left"
+                }`}
+              >
+                <p className="text-lg">{message.content}</p>
+                <span className="text-xs text-neutral-400">
+                  {new Date(message.createdAt).toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
 
-        <form
-          className="mt-auto flex gap-2 shrink-0"
-          onSubmit={handleSendMessage}
-        >
-          <input
-            type="text"
-            placeholder="Type your message..."
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            className="flex-1 px-4 py-3 border border-neutral-800 bg-transparent text-green outline-none focus:border-green rounded-md duration-200"
-          />
-          <button
-            type="submit"
-            className="py-2 px-4 rounded-md bg-neutral-800 text-white"
+          <form
+            className="mt-auto flex gap-2 shrink-0"
+            onSubmit={handleSendMessage}
           >
-            Send
-          </button>
-        </form>
-      </section>
+            <input
+              type="text"
+              placeholder="Type your message..."
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              className="flex-1 px-4 py-3 border border-neutral-800 bg-transparent text-green outline-none focus:border-green rounded-md duration-200"
+            />
+            <button
+              type="submit"
+              className="py-2 px-4 rounded-md bg-neutral-800 text-white"
+            >
+              Send
+            </button>
+          </form>
+        </section>
+      ) : (
+        <section className="w-4/5 h-full flex items-center justify-center">
+          <p className="text-2xl text-white/80">Select a user to start chat</p>
+        </section>
+      )}
     </main>
   );
 };
