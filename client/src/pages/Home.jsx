@@ -189,7 +189,9 @@ const Home = () => {
         </section>
       ) : (
         <section className="w-4/5 h-full flex items-center justify-center">
-          <p className="text-2xl text-white/80">Select a user to start chat</p>
+          <p className="text-2xl text-green/80 bold">
+            Select a user to start chat
+          </p>
         </section>
       )}
     </main>
