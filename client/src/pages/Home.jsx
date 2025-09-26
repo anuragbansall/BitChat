@@ -84,6 +84,16 @@ const Home = () => {
     setIsDropdownOpen((prev) => !prev);
   };
 
+  // Ref for auto-scroll
+  const messagesEndRef = React.useRef(null);
+
+  // Auto-scroll to bottom when chats change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chats]);
+
   if (isFetchingProfile) {
     return (
       <main className="h-screen w-screen bg-dark flex flex-col justify-center items-center text-green">
@@ -154,6 +164,8 @@ const Home = () => {
                 </span>
               </div>
             ))}
+            {/* Dummy div for scroll target */}
+            <div ref={messagesEndRef} />
           </div>
 
           <form
