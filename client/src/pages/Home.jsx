@@ -134,10 +134,10 @@ const Home = () => {
             }`}
             onClick={() => handleUserClick(user)}
           >
-            <div className="w-10 h-10 bg-neutral-800/40 uppercase text-lg rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-neutral-800/40 uppercase text-2xl rounded-full flex items-center justify-center">
               {user.username[0]}
             </div>
-            <p className="text-sm">@{user.username}</p>
+            <p className="text-lg">@{user.username}</p>
           </div>
         ))}
       </aside>
@@ -147,7 +147,7 @@ const Home = () => {
           <h1 className="text-2xl">BitChat</h1>
 
           <div
-            className="w-10 h-10 bg-neutral-800/40 uppercase text-xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
+            className="w-12 h-12 bg-neutral-800/40 uppercase text-2xl rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-800 duration-200 mt-4"
             onClick={toggleDropdown}
           >
             {user?.username[0]}
@@ -171,13 +171,13 @@ const Home = () => {
               {chats.map((message) => (
                 <div
                   key={message._id}
-                  className={`p-2 my-2 rounded-md ${
+                  className={`py-2 px-4 my-2 rounded-md ${
                     message.sender === user?.id
                       ? "bg-green/20 self-end text-right"
                       : "bg-neutral-800/40 self-start text-left"
                   }`}
                 >
-                  <p className="text-lg">{message.content}</p>
+                  <p className="text-xl">{message.content}</p>
                   <span className="text-xs text-neutral-400">
                     {new Date(message.createdAt).toLocaleString()}
                   </span>
@@ -196,11 +196,11 @@ const Home = () => {
                 placeholder="Type your message..."
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
-                className="flex-1 px-4 py-3 border border-neutral-800 bg-transparent text-green outline-none focus:border-green rounded-md duration-200"
+                className="flex-1 px-6 py-4 border border-neutral-800 bg-transparent text-green outline-none focus:border-green rounded-md duration-200 text-xl"
               />
               <button
                 type="submit"
-                className="py-2 px-4 rounded-md bg-neutral-800 text-white"
+                className="py-2 px-4 rounded-md bg-neutral-800 text-white text-md cursor-pointer hover:bg-green/50 duration-200"
               >
                 Send
               </button>

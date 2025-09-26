@@ -5,6 +5,10 @@
   --color-green: #61cf5a;
 }
 
+* {
+  font-family: monospace;
+}
+
 /* Minimal scrollbar styles */
 ::-webkit-scrollbar {
   display: none;
