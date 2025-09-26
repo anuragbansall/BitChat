@@ -43,43 +43,45 @@ io.on("connection", (socket) => {
   console.log(`✅ User ${userId} connected (socket ${socket.id})`);
 
   // Listen for chat messages
-  socket.on("chatMessage", async ({ message, receiver }) => {
-    console.log(`📩 Message from ${userId} to ${receiver}: ${message}`);
-    if (!message || !receiver) {
-      console.error("❌ Invalid chatMessage data");
-      return socket.emit("error", "Invalid message data");
-    }
-
-    const payload = {
-      message,
-      sender: userId,
-      receiver,
-      createdAt: new Date(),
-    };
-
-    try {
-      await Message.create({
-        sender: userId,
-        receiver,
-        content: message,
-      });
-
-      console.log("✅ Message saved:", payload);
-
-      // Send to receiver if online
-      const receiverSocketId = userSocketMap.get(receiver);
-
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("chatMessage", payload);
+  socket.on(
+    "chatMessage",
+    async ({ message, receiver, timestamp, senderId }) => {
+      // message is already encrypted
+      if (!message || !receiver) {
+        console.error("❌ Invalid chatMessage data");
+        return socket.emit("error", "Invalid message data");
       }
 
-      // Send back to sender (for confirmation/UI update)
-      socket.emit("chatMessage", payload);
-    } catch (err) {
-      console.error("❌ Failed to save message:", err.message);
-      socket.emit("error", "Failed to save message. Please try again.");
+      const payload = {
+        message,
+        sender: userId,
+        receiver,
+        createdAt: timestamp ? new Date(timestamp) : new Date(),
+        _id: undefined,
+      };
+
+      try {
+        const saved = await Message.create({
+          sender: userId,
+          receiver,
+          content: message,
+          createdAt: payload.createdAt,
+        });
+        payload._id = saved._id;
+
+        // Send to receiver if online
+        const receiverSocketId = userSocketMap.get(receiver);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("chatMessage", payload);
+        }
+        // Send back to sender (for confirmation/UI update)
+        socket.emit("chatMessage", payload);
+      } catch (err) {
+        console.error("❌ Failed to save message:", err.message);
+        socket.emit("error", "Failed to save message. Please try again.");
+      }
     }
-  });
+  );
 
   // Handle disconnect
   socket.on("disconnect", () => {

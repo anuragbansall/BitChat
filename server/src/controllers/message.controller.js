@@ -12,14 +12,13 @@ export const getMessagesByUserId = async (req, res) => {
       });
     }
 
+    // Messages are stored encrypted. The server does NOT decrypt them.
     const messages = await Message.find({
       $or: [
         { sender: user._id, receiver: userId },
-        { sender: userId, receiver: user._id }
-      ]
+        { sender: userId, receiver: user._id },
+      ],
     });
-
-    // For production, consider using a logging library like 'winston' or 'morgan' with appropriate log levels.
 
     res.json({
       status: "success",

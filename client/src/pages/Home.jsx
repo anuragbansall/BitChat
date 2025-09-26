@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
+import CryptoJS from "crypto-js";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ChatContext } from "../context/ChatContext";
@@ -7,6 +8,9 @@ const Home = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [messageInput, setMessageInput] = useState("");
+
+  // Shared secret for demo (should be unique per chat in production)
+  const SHARED_SECRET = import.meta.env.VITE_APP_SHARED_SECRET;
 
   const { isAuthenticated, user, isFetchingProfile, logout, allUsers } =
     useContext(AuthContext);
@@ -22,12 +26,19 @@ const Home = () => {
 
     const handleReceiveMessage = (msg) => {
       // Only add message if it's for the current chat
-      console.log(msg);
       if (msg.sender === selectedChat._id && msg.receiver === user.id) {
+        // Decrypt message
+        let decrypted = "";
+        try {
+          const bytes = CryptoJS.AES.decrypt(msg.message, SHARED_SECRET);
+          decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        } catch (e) {
+          decrypted = "[Decryption failed]";
+        }
         setChats((prev) => [
           ...prev,
           {
-            content: msg.message,
+            content: decrypted,
             createdAt: msg.createdAt,
             sender: msg.sender,
             receiver: msg.receiver,
@@ -47,9 +58,14 @@ const Home = () => {
     e.preventDefault();
 
     if (!messageInput.trim() || !selectedChat || !socket) return;
+    // Encrypt message
+    const encrypted = CryptoJS.AES.encrypt(
+      messageInput,
+      SHARED_SECRET
+    ).toString();
     const msg = {
       receiver: selectedChat._id,
-      message: messageInput,
+      message: encrypted,
       timestamp: Date.now(),
       senderId: isAuthenticated ? user._id : null,
     };
@@ -59,7 +75,7 @@ const Home = () => {
     setChats((prev) => [
       ...prev,
       {
-        content: messageInput,
+        content: messageInput, // Show plain text for sender
         createdAt: msg.timestamp,
         sender: user.id,
         receiver: selectedChat._id,

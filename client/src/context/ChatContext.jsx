@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
+import CryptoJS from "crypto-js";
 import { io } from "socket.io-client";
 import { AuthContext } from "./AuthContext";
 import API from "../api/axios.js";
@@ -42,11 +43,26 @@ const ChatProvider = ({ children }) => {
     };
   }, [isAuthenticated, token]);
 
+  const SHARED_SECRET = import.meta.env.VITE_APP_SHARED_SECRET;
   const getChats = async () => {
     try {
       const chatId = selectedChat?._id;
       const response = await API.get(`/messages/${chatId}`);
-      setChats(response.data.data || []);
+      // Decrypt each message
+      const decryptedChats = (response.data.data || []).map((msg) => {
+        let decrypted = "";
+        try {
+          const bytes = CryptoJS.AES.decrypt(msg.content, SHARED_SECRET);
+          decrypted = bytes.toString(CryptoJS.enc.Utf8);
+        } catch (e) {
+          decrypted = "[Decryption failed]";
+        }
+        return {
+          ...msg,
+          content: decrypted,
+        };
+      });
+      setChats(decryptedChats);
     } catch (error) {
       setChatsError(error?.response?.data?.message || "Failed to load chats");
     } finally {
